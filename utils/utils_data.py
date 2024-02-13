@@ -201,7 +201,7 @@ def plot_example(df, i=12, label_edges=False):
     z = dict(zip(symbols, range(len(symbols))))
     norm = plt.Normalize(vmin=0, vmax=len(symbols)-1)
     color = [mpl.colors.to_hex(k) for k in cmap(norm([z[j] for j in entry.symbol]))]
-    plot_atoms(atoms, ax[0], radii=0.25, colors=color, rotation=('230x,220y,30z'))
+    plot_atoms(atoms, ax[0], radii=0.25, colors=color, rotation=('230x,223y,30z'))
 
     # plot graph
     #nx.draw_networkx(g, ax=ax[1], labels=node_labels, pos=pos, font_family='lato', node_size=500, node_color=color,
