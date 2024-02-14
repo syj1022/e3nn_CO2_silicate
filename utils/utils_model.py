@@ -278,6 +278,9 @@ def evaluate(model, dataloader, loss_fn, loss_fn_mae, device):
         for j, d in enumerate(dataloader):
             d.to(device)
             output = model(d)
+            output = (output >= 0.5).float()
+            output.requires_grad = True
+            d.phdos.requires_grad = True
             loss = loss_fn(output, d.phdos).cpu()
             loss_mae = loss_fn_mae(output, d.phdos).cpu()
             loss_cumulative = loss_cumulative + loss.detach().item()
