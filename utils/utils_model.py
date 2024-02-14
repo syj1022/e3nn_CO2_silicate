@@ -281,6 +281,8 @@ def evaluate(model, dataloader, loss_fn, loss_fn_mae, device):
             output = (output >= 0.5).float()
             output.requires_grad = True
             d.phdos.requires_grad = True
+            print(output)
+            print(d.phdos)
             loss = loss_fn(output, d.phdos).cpu()
             loss_mae = loss_fn_mae(output, d.phdos).cpu()
             loss_cumulative = loss_cumulative + loss.detach().item()
