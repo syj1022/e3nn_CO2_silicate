@@ -319,6 +319,11 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
             d.to(device)
             output = model(d)
             loss = loss_fn(output, d.phdos).cpu()
+            output = (output >= 0.5).float()
+            output.requires_grad = True
+            d.phdos.requires_grad = True
+            print(output)
+            print(d.phdos)
             loss_mae = loss_fn_mae(output, d.phdos).cpu()
             loss_cumulative = loss_cumulative + loss.detach().item()
             loss_cumulative_mae = loss_cumulative_mae + loss_mae.detach().item()
