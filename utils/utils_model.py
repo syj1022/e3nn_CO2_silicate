@@ -281,8 +281,7 @@ def evaluate(model, dataloader, loss_fn, loss_fn_mae, device):
             output = (output >= 0.5).float()
             output.requires_grad = True
             d.phdos.requires_grad = True
-            print(output)
-            print(d.phdos)
+            print(loss)
             loss = loss_fn(output, d.phdos).cpu()
             loss_mae = loss_fn_mae(output, d.phdos).cpu()
             loss_cumulative = loss_cumulative + loss.detach().item()
@@ -322,8 +321,7 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
             output = (output >= 0.5).float()
             output.requires_grad = True
             d.phdos.requires_grad = True
-            print(output)
-            print(d.phdos)
+            print(loss)
             loss_mae = loss_fn_mae(output, d.phdos).cpu()
             loss_cumulative = loss_cumulative + loss.detach().item()
             loss_cumulative_mae = loss_cumulative_mae + loss_mae.detach().item()
