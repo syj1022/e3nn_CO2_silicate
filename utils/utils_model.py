@@ -12,6 +12,7 @@ from e3nn.nn.models.gate_points_2101 import Convolution, smooth_cutoff, tp_path_
 import matplotlib.pyplot as plt
 import math
 import time
+import numpy as np
 from tqdm import tqdm
 
 # format progress bar
