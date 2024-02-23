@@ -294,6 +294,7 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
     checkpoint = next(checkpoint_generator)
     start_time = time.time()
     loss_check = np.inf
+    best_step = 0
 
     try: model.load_state_dict(torch.load(run_name + '.torch')['state'])
     except:
@@ -362,8 +363,10 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
 
             if valid_avg_loss[0] < loss_check:
                 loss_check = valid_avg_loss[0]
+                best_step = step + 1
                 with open(run_name + '.torch', 'wb') as f:
                     torch.save(results, f)
+                print(f"Best model updated at iteration {step+1:4d}")
 
         if scheduler is not None:
             scheduler.step()
