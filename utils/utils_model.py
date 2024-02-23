@@ -292,7 +292,7 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
     checkpoint_generator = loglinspace(0.3, 5)
     checkpoint = next(checkpoint_generator)
     start_time = time.time()
-
+    loss_check = np.inf
 
     try: model.load_state_dict(torch.load(run_name + '.torch')['state'])
     except:
@@ -327,7 +327,7 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
         
         valid_avg_loss = evaluate(model, dataloader_valid, loss_fn, loss_fn_mae, device)
         train_avg_loss = evaluate(model, dataloader_train, loss_fn, loss_fn_mae, device)
-
+        
         print(f"Iteration {step+1:4d}   " +
               f"train loss = {train_avg_loss[0]:8.4f}   " +
               f"valid loss = {valid_avg_loss[0]:8.4f}   " +
@@ -359,9 +359,10 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
                 'state': model.state_dict()
             }
 
-
-            with open(run_name + '.torch', 'wb') as f:
-                torch.save(results, f)
+            if valid_avg_loss[0] < loss_check:
+                loss_check = valid_avg_loss[0]
+                with open(run_name + '.torch', 'wb') as f:
+                    torch.save(results, f)
 
         if scheduler is not None:
             scheduler.step()
