@@ -370,3 +370,90 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
 
         if scheduler is not None:
             scheduler.step()
+
+
+
+
+def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn_mae, run_name,
+          max_iter=101, scheduler=None, device="cpu"):
+    model.to(device)
+
+    checkpoint_generator = loglinspace(0.3, 5, max_iter // 10)
+    checkpoint = next(checkpoint_generator)
+    start_time = time.time()
+    loss_check = np.inf
+    best_step = 0
+
+    try: 
+        model.load_state_dict(torch.load(run_name + '.torch')['state'])
+    except:
+        results = {}
+        history = []
+        s0 = 0
+    else:
+        results = torch.load(run_name + '.torch')
+        history = results['history']
+        s0 = history[-1]['step'] + 1
+
+    for step in range(max_iter):
+        model.train()
+        loss_cumulative = 0.
+        loss_cumulative_mae = 0.
+        
+        for j, d in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
+            def closure():
+                optimizer.zero_grad()
+                d.to(device)
+                output = model(d)
+                loss = loss_fn(output, d.phdos)
+                loss_mae = loss_fn_mae(output, d.phdos)  # Not directly used in optimization but for reporting
+                loss.backward()
+                return loss
+            
+            loss = optimizer.step(closure)
+            loss_cumulative += loss.item()
+            # Note: Computing MAE loss for reporting might need adjustment since loss_mae is not updated inside closure
+            
+        end_time = time.time()
+        wall = end_time - start_time
+        
+        # Assume evaluate function handles device placement internally
+        valid_avg_loss = evaluate(model, dataloader_valid, loss_fn, loss_fn_mae, device)
+        train_avg_loss = evaluate(model, dataloader_train, loss_fn, loss_fn_mae, device)
+        
+        print(f"Iteration {step+1:4d}   " +
+              f"train loss = {train_avg_loss[0]:8.4f}   " +
+              f"valid loss = {valid_avg_loss[0]:8.4f}   " +
+              f"elapsed time = {time.strftime('%H:%M:%S', time.gmtime(wall))}")
+            
+        if step == checkpoint:
+            checkpoint = next(checkpoint_generator)
+            assert checkpoint > step
+
+            history.append({
+                'step': s0 + step,
+                'wall': wall,
+                'batch': {
+                    'loss': loss.item(),  # Assuming loss is scalar
+                    # 'mean_abs': not updated here, adjust accordingly
+                },
+                'valid': valid_avg_loss,
+                'train': train_avg_loss,
+            })
+
+            results = {
+                'history': history,
+                'state': model.state_dict()
+            }
+
+        if valid_avg_loss[0] < loss_check:
+            loss_check = valid_avg_loss[0]
+            best_step = step + 1
+            with open(run_name + '.torch', 'wb') as f:
+                torch.save(results, f)
+            print(f"Best model updated at iteration {step+1:4d}")
+
+        if scheduler is not None:
+            scheduler.step()
+
+    return results
