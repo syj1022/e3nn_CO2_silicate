@@ -388,10 +388,10 @@ def LBFGSevaluate(model, dataloader, loss_fn, device):
 def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, run_name, max_iter=101, device="cpu"):
     model.to(device)
 
-    checkpoint_generator = loglinspace(0.3, 5, max_iter // 10)
+    checkpoint_generator = loglinspace(0.3, 5)
     checkpoint = next(checkpoint_generator)
     start_time = time.time()
-    loss_check = float('inf')
+    loss_check = np.inf
     best_step = 0
 
     results = {}
