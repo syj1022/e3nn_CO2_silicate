@@ -394,19 +394,17 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
     loss_check = float('inf')
     best_step = 0
 
-    results = {}
-    history = []
-    s0 = 0
-
-    try:
+    try: model.load_state_dict(torch.load(run_name + '.torch')['state'])
+    except:
+        results = {}
+        history = []
+        s0 = 0
+    else:
         results = torch.load(run_name + '.torch')
-        model.load_state_dict(results['state'])
         history = results['history']
         s0 = history[-1]['step'] + 1
-    except FileNotFoundError:
-        print(f"No checkpoint found at '{run_name}.torch', starting from scratch.")
-
-    for step in range(s0, s0 + max_iter):
+        
+    for step in range(max_iter):
         model.train()
         loss_cumulative = 0.0
         
