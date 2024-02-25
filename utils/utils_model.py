@@ -391,7 +391,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
     checkpoint_generator = loglinspace(0.3, 5)
     checkpoint = next(checkpoint_generator)
     start_time = time.time()
-    loss_check = np.inf
+    loss_check = float('inf')
     best_step = 0
 
     results = {}
@@ -448,7 +448,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
             if valid_loss < loss_check:
                 loss_check = valid_loss
                 best_step = step
-                torch.save(results, run_name + '.torch')
+                torch.save(results, f"{run_name}.torch")
                 print(f"Best model updated at iteration {step+1:4d}")
 
     return results
