@@ -391,7 +391,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
     checkpoint_generator = loglinspace(0.3, 5)
     checkpoint = next(checkpoint_generator)
     start_time = time.time()
-    loss_check = float('inf')
+    loss_check = np.inf
     best_step = 0
 
     results = {}
@@ -405,34 +405,48 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
         s0 = history[-1]['step'] + 1
     except FileNotFoundError:
         print(f"No checkpoint found at '{run_name}.torch', starting from scratch.")
-        
-    for step in range(max_iter):
+
+    for step in range(s0, s0 + max_iter):
         model.train()
         loss_cumulative = 0.0
-        
+
+        # We create a list to store the losses for each batch
+        batch_losses = []
+
         for d in tqdm(dataloader_train, total=len(dataloader_train)):
             def closure():
+                # We need to clear gradients at the beginning of each closure call
                 optimizer.zero_grad()
-                d.to(device)
+                # Move data to the correct device
+                d = d.to(device)
+                # Forward pass
                 output = model(d)
+                # Compute loss
                 loss = loss_fn(output, d.phdos)
+                # Perform backward pass
                 loss.backward()
+                # We save the loss from this batch
+                batch_losses.append(loss.item())
                 return loss
 
-            loss = optimizer.step(closure)
-            loss_cumulative += loss.item()
+            # Call the optimizer step with the closure function
+            optimizer.step(closure)
+
+        # The cumulative loss for this epoch is the sum of all batch losses
+        loss_cumulative = sum(batch_losses)
 
         end_time = time.time()
         wall = end_time - start_time
-        
+
+        # Compute average training and validation losses over the entire datasets
         valid_loss = LBFGSevaluate(model, dataloader_valid, loss_fn, device)
-        train_loss = LBFGSevaluate(model, dataloader_train, loss_fn, device)
-        
+        train_loss = loss_cumulative / len(dataloader_train)
+
         print(f"Iteration {step+1:4d} | " +
               f"train loss = {train_loss:.4f} | " +
               f"valid loss = {valid_loss:.4f} | " +
               f"elapsed time = {time.strftime('%H:%M:%S', time.gmtime(wall))}")
-        
+
         if step == checkpoint:
             checkpoint = next(checkpoint_generator)
             history.append({
@@ -448,7 +462,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
             if valid_loss < loss_check:
                 loss_check = valid_loss
                 best_step = step
-                torch.save(results, f"{run_name}.torch")
+                torch.save(results, run_name + '.torch')
                 print(f"Best model updated at iteration {step+1:4d}")
 
     return results
