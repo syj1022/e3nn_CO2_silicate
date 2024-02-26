@@ -418,7 +418,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
                 # We need to clear gradients at the beginning of each closure call
                 optimizer.zero_grad()
                 # Move data to the correct device
-                d = d.to(device)
+                d.to(device)
                 # Forward pass
                 output = model(d)
                 # Compute loss
