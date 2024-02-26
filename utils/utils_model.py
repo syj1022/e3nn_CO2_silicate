@@ -411,7 +411,7 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
             def closure():
                 batch.to(device)
                 optimizer.zero_grad()
-                output = model(batch)
+                output = model(batch).detach()
                 loss = loss_fn(output, batch.phdos)
                 loss.backward(retain_graph=True)
                 return loss
