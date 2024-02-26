@@ -385,7 +385,7 @@ def LBFGSevaluate(model, dataloader, loss_fn, device):
             loss_cumulative += loss.item()
     return loss_cumulative / len(dataloader)
 
-def LBFGS_train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, run_name,
+def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, run_name,
                 max_iter=101, scheduler=None, device="cpu"):
     model.to(device)
     checkpoint_steps = loglinspace(0.3, 5)
