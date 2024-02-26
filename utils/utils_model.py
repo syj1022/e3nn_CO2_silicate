@@ -407,16 +407,15 @@ def LBFGStrain(model, optimizer, dataloader_train, dataloader_valid, loss_fn, ru
         model.train()
         loss_cumulative = 0.
         
-        for j, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
-            def closure():
-                batch.to(device)
-                optimizer.zero_grad()
-                output = model(batch).detach()
-                loss = loss_fn(output, batch.phdos)
-                loss.backward(retain_graph=True)
-                return loss
+    for j, batch in tqdm(enumerate(dataloader_train), total=len(dataloader_train)):
+        def closure():
+            batch.to(device)
+            optimizer.zero_grad()
+            output = model(batch)  # Do not detach
+            loss = loss_fn(output, batch.phdos)
+            loss.backward(retain_graph=True)
+            return loss
 
-            optimizer.step(closure)
-            loss = closure()  
+        loss = optimizer.step(closure)  # This calls the closure and returns the loss
+        loss_cumulative += loss.item()
 
-            loss_cumulative += loss.item()
