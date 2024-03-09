@@ -335,31 +335,26 @@ def train(model, optimizer, dataloader_train, dataloader_valid, loss_fn, loss_fn
               f"valid loss = {valid_avg_loss[0]:8.4f}   " +
               f"elapsed time = {time.strftime('%H:%M:%S', time.gmtime(wall))}")
             
-        if step == checkpoint:
-            checkpoint = next(checkpoint_generator)
-            assert checkpoint > step
-
-            history.append({
-                'step': s0 + step,
-                'wall': wall,
-                'batch': {
-                    'loss': loss.item(),
-                    'mean_abs': loss_mae.item(),
-                },
-                'valid': {
-                    'loss': valid_avg_loss[0],
-                    'mean_abs': valid_avg_loss[1],
-                },
-                'train': {
-                    'loss': train_avg_loss[0],
-                    'mean_abs': train_avg_loss[1],
-                },
-            })
-
-            results = {
-                'history': history,
-                'state': model.state_dict()
-            }
+        history.append({
+            'step': s0 + step,
+            'wall': wall,
+            'batch': {
+                'loss': loss.item(),
+                'mean_abs': loss_mae.item(),
+            },
+            'valid': {
+                'loss': valid_avg_loss[0],
+                'mean_abs': valid_avg_loss[1],
+            },
+            'train': {
+                'loss': train_avg_loss[0],
+                'mean_abs': train_avg_loss[1],
+            },
+        })
+        results = {
+            'history': history,
+            'state': model.state_dict()
+        }
 
         if valid_avg_loss[0] < loss_check:
             loss_check = valid_avg_loss[0]
